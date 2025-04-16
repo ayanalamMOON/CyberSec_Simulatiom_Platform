@@ -8,14 +8,21 @@ a low public exponent.
 import sympy as sp
 from sympy.ntheory.modular import crt
 import logging
-from typing import List, Optional, Dict, Any
+import random  # Add import for Python's random module
+from typing import List, Optional
 
-from app.models.simulation import HastadAttackResponse, Recipient, SimulationStep
+from app.models.simulation import (
+    HastadAttackResponse, Recipient, SimulationStep
+)
 
 logger = logging.getLogger(__name__)
 
 
-def run_simulation(exponent: int = 3, key_size: int = 512, message: Optional[int] = None) -> HastadAttackResponse:
+def run_simulation(
+    exponent: int = 3,
+    key_size: int = 512,
+    message: Optional[int] = None
+) -> HastadAttackResponse:
     """
     Run a simulation of Håstad's Broadcast Attack.
     
@@ -27,7 +34,9 @@ def run_simulation(exponent: int = 3, key_size: int = 512, message: Optional[int
     Returns:
         The results of the simulation
     """
-    logger.info(f"Starting Hastad attack simulation with e={exponent}, key_size={key_size}")
+    logger.info(
+        f"Starting Hastad attack with e={exponent}, key_size={key_size}"
+    )
     
     # Track simulation steps
     steps: List[SimulationStep] = []
@@ -77,7 +86,7 @@ def run_simulation(exponent: int = 3, key_size: int = 512, message: Optional[int
     min_modulus = min(moduli)
     if message is None:
         # Create a random message that's smaller than all moduli
-        message = sp.randint(2**(key_size//2), min_modulus - 1)
+        message = random.randint(2**(key_size//2), min_modulus - 1)
     else:
         # Ensure message is within valid range
         if message >= min_modulus:
@@ -119,7 +128,10 @@ def run_simulation(exponent: int = 3, key_size: int = 512, message: Optional[int
         
         steps.append(SimulationStep(
             step="CRT Result",
-            description=f"M^{exponent} mod (N₁×N₂×...×N_{exponent}) = {M_e_mod_product}"
+            description=(
+                f"M^{exponent} mod (N₁×N₂×...×N_{exponent}) = "
+                f"{M_e_mod_product}"
+            )
         ))
         
         # Since M^e < N₁×N₂×...×N_e, M_e_mod_product is actually equal to M^e
@@ -134,9 +146,11 @@ def run_simulation(exponent: int = 3, key_size: int = 512, message: Optional[int
         
         steps.append(SimulationStep(
             step="Attack result",
-            description=f"Recovered message: {recovered_message}\n"
-                       f"Original message: {original_message}\n"
-                       f"Attack successful: {success}"
+            description=(
+                f"Recovered message: {recovered_message}\n"
+                f"Original message: {original_message}\n"
+                f"Attack successful: {success}"
+            )
         ))
         
         # Create recipients list from recipient data

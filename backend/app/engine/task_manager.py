@@ -140,18 +140,26 @@ class TaskManager:
         # Generate unique ID
         task_id = str(uuid.uuid4())
         
-        # Create task
-        task = Task(task_id, func, args, kwargs)
-        
-        with self.lock:
-            # Store task
-            self.tasks[task_id] = task
+        try:
+            # Create task
+            task = Task(task_id, func, args, kwargs)
             
-            # Submit task to executor
-            self.executor.submit(task.run)
-            
-        logger.info(f"Created task {task_id}")
-        return task_id
+            with self.lock:
+                # Store task
+                self.tasks[task_id] = task
+                
+                # Submit task to executor
+                self.executor.submit(task.run)
+                
+            logger.info(f"Created task {task_id} successfully. Currently tracking {len(self.tasks)} tasks.")
+            # Log a warning if there are too many tasks in memory
+            if len(self.tasks) > 100:
+                logger.warning(f"Task manager has {len(self.tasks)} tasks in memory. Consider cleaning up.")
+                
+            return task_id
+        except Exception as e:
+            logger.error(f"Failed to create task: {str(e)}")
+            raise
     
     def get_task(self, task_id: str) -> Optional[Task]:
         """
@@ -179,11 +187,15 @@ class TaskManager:
         Raises:
             ValueError: If task not found
         """
+        logger.info(f"Looking up status for task {task_id}")
         task = self.get_task(task_id)
         if not task:
+            logger.warning(f"Task {task_id} not found in task manager. Available task IDs: {list(self.tasks.keys())[:5]}")
             raise ValueError(f"Task {task_id} not found")
         
-        return task.get_info()
+        task_info = task.get_info()
+        logger.info(f"Returning status for task {task_id}: {task_info['status']}")
+        return task_info
     
     def get_task_result(self, task_id: str) -> Any:
         """

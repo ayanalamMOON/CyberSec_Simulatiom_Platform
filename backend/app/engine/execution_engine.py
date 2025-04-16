@@ -26,9 +26,21 @@ class SimulationEngine:
     5. Providing unified error handling
     """
     
+    # Use a class variable to ensure task_manager is shared across all instances
+    _instance = None
+    _task_manager = None
+    
+    def __new__(cls):
+        """Implement singleton pattern to ensure only one engine instance exists."""
+        if cls._instance is None:
+            cls._instance = super(SimulationEngine, cls).__new__(cls)
+            cls._task_manager = TaskManager()
+        return cls._instance
+    
     def __init__(self):
         """Initialize the simulation engine with task manager and runner registry."""
-        self.task_manager = TaskManager()
+        # Use the class-level task manager if it exists
+        self.task_manager = self.__class__._task_manager or TaskManager()
         self.runners: Dict[str, SimulationRunner] = {}
         self.results_cache: Dict[str, Dict[str, Any]] = {}
         self.registered_simulations: Dict[str, Dict[str, Any]] = {}
