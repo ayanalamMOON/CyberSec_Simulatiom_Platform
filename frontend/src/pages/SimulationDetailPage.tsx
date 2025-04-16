@@ -9,13 +9,15 @@ const SimulationDetailPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Handle special case for Håstad attack which has a dedicated page
-  if (id === 'hastad-attack') {
-    return <Navigate to="/simulations/hastad-attack" replace />;
-  }
-  
   useEffect(() => {
     const fetchSimulation = async () => {
+      // Handle special case for Håstad attack which has a dedicated page
+      if (id === 'hastad-attack') {
+        // Use replace to prevent going back to this page
+        window.location.replace("/simulations/hastad-attack");
+        return;
+      }
+
       if (!id) return;
       
       try {

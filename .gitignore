@@ -1,1 +1,5 @@
 .venv/
+.idx/
+.vscode/
+build/
+node_modules/
