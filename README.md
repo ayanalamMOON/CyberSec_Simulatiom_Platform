@@ -96,6 +96,29 @@ npm start
 ├── docker-compose.yml
 ├── README.md
 ```
+
+## Screenshots Showcase
+
+### Simulation Results
+![Simulation Results](Screenshot%202025-04-17%20004051.png)
+*Learn cybersecurity through interactive simulations with our platform*
+
+### Interactive Attack Simulation
+![Håstad's Broadcast Attack](Screenshot%202025-04-17%20004114.png)
+*Popular cybersecurity simulations including RSA attacks, padding oracles, and MitM visualizations*
+
+### Cybersecurity Simulations Library
+![Simulations Library](Screenshot%202025-04-17%20004130.png)
+*Browse our comprehensive collection of interactive cybersecurity simulations*
+
+### Featured Simulations 
+![Featured Simulations](Screenshot%202025-04-17%20004152.png)
+*Håstad's broadcast attack simulation interface with parameters*
+
+### Platform Homepage
+![Platform Homepage](Screenshot%202025-04-17%20004618.png)
+*Håstad's Broadcast Attack simulation showing original and recovered messages*
+
 ## Project Roadmap (Contributor-Friendly)
 
 Here’s a roadmap that can be converted into GitHub issues or documentation:
