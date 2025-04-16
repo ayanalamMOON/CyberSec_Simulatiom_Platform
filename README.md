@@ -99,7 +99,7 @@ npm start
 
 ## Screenshots Showcase
 
-### Simulation Results
+### Platform Homepage
 ![Simulation Results](Screenshot%202025-04-17%20004051.png)
 *Learn cybersecurity through interactive simulations with our platform*
 
@@ -115,7 +115,7 @@ npm start
 ![Featured Simulations](Screenshot%202025-04-17%20004152.png)
 *Håstad's broadcast attack simulation interface with parameters*
 
-### Platform Homepage
+### Simulation Results
 ![Platform Homepage](Screenshot%202025-04-17%20004618.png)
 *Håstad's Broadcast Attack simulation showing original and recovered messages*
 
