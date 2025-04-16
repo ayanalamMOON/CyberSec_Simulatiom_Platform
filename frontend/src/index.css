@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles that extend TailwindCSS */
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+.code-editor {
+  @apply font-mono bg-terminal-bg text-terminal-text rounded shadow-lg;
+}
+
+.terminal {
+  @apply font-mono bg-terminal-bg text-terminal-text p-4 rounded shadow-lg;
+}
+
+.terminal .success {
+  @apply text-terminal-green;
+}
+
+.terminal .error {
+  @apply text-terminal-red;
+}
+
+.terminal .warning {
+  @apply text-terminal-yellow;
+}
+
+.terminal .info {
+  @apply text-terminal-cyan;
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-in;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
