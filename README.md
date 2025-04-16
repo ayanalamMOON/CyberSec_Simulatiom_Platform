@@ -103,7 +103,7 @@ npm start
 ![Simulation Results](Screenshot%202025-04-17%20004051.png)
 *Learn cybersecurity through interactive simulations with our platform*
 
-### Interactive Attack Simulation
+### Featured Simulations 
 ![Håstad's Broadcast Attack](Screenshot%202025-04-17%20004114.png)
 *Popular cybersecurity simulations including RSA attacks, padding oracles, and MitM visualizations*
 
@@ -111,7 +111,7 @@ npm start
 ![Simulations Library](Screenshot%202025-04-17%20004130.png)
 *Browse our comprehensive collection of interactive cybersecurity simulations*
 
-### Featured Simulations 
+### Interactive Attack Simulation
 ![Featured Simulations](Screenshot%202025-04-17%20004152.png)
 *Håstad's broadcast attack simulation interface with parameters*
 
