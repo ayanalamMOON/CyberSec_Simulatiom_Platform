@@ -57,9 +57,24 @@ class SimulationRunner:
             # If direct import fails, try relative import
             try:
                 self.module = importlib.import_module(f"..{self.module_path}", package=__name__)
-            except ImportError as e:
-                logger.error(f"Could not import module {self.module_path}: {str(e)}")
-                raise
+            except ImportError:
+                # Try as absolute import from the root project path
+                try:
+                    # Import the module from project root (one level up from app)
+                    # This is needed because simulations are at the project root level
+                    import sys
+                    import os
+                    
+                    # Add the backend directory to path if not already there
+                    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+                    if backend_dir not in sys.path:
+                        sys.path.insert(0, backend_dir)
+                        
+                    # Now try importing again
+                    self.module = importlib.import_module(self.module_path)
+                except ImportError as e:
+                    logger.error(f"Could not import module {self.module_path}: {str(e)}")
+                    raise
         
         logger.info(f"Successfully loaded module for simulation: {self.simulation_id}")
         return self.module

@@ -56,7 +56,12 @@ class SimulationEngine:
             runner_class=None,  # Will use default runner
             description="Håstad's Broadcast Attack on RSA encryption"
         )
-        
+        self.register_simulation(
+            simulation_id="cbc-padding-oracle",
+            module_path="simulations.cbc_padding_oracle",
+            runner_class=None,
+            description="CBC Padding Oracle Attack simulation"
+        )
         # More simulations can be registered here as they are developed
     
     def register_simulation(self, 
