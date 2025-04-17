@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { simulationApi, CBCPaddingOracleRequest, CBCPaddingOracleResponse } from '../api/simulationApi';
+import { VisualizationProvider } from '../visualizations/VisualizationContext';
+import CBCPaddingOracleVisualizer from '../visualizations/components/CBCPaddingOracleVisualizer';
 
 const CBCPaddingOraclePage: React.FC = () => {
   const [message, setMessage] = useState<string>('');
@@ -8,6 +10,7 @@ const CBCPaddingOraclePage: React.FC = () => {
   const [response, setResponse] = useState<CBCPaddingOracleResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVisualizer, setShowVisualizer] = useState<boolean>(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,55 +97,98 @@ const CBCPaddingOraclePage: React.FC = () => {
       {response && (
         <div className="bg-white shadow-lg rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Simulation Results</h2>
-          <div className="mb-4">
-            <strong>Original Message:</strong>
-            <div className="font-mono break-all bg-gray-50 p-2 rounded mt-1">{response.original_message}</div>
-          </div>
-          <div className="mb-4">
-            <strong>Encrypted (base64):</strong>
-            <div className="font-mono break-all bg-gray-50 p-2 rounded mt-1">{response.encrypted_message}</div>
-          </div>
-          <div className="mb-4">
-            <strong>IV (base64):</strong>
-            <div className="font-mono break-all bg-gray-50 p-2 rounded mt-1">{response.iv}</div>
-          </div>
-          <div className="mb-6">
-            <h3 className="font-medium text-lg mb-2">Blocks</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {response.blocks.map(block => (
-                <div key={block.index} className="bg-gray-100 p-3 rounded">
-                  <div>Block #{block.index}</div>
-                  <div className="font-mono text-xs break-all">{block.data}</div>
-                  {block.decrypted && block.decrypted_data && (
-                    <div className="mt-2 text-green-700 font-semibold">Decrypted: <span className="font-mono">{block.decrypted_data}</span></div>
-                  )}
-                </div>
-              ))}
+
+          {/* Toggle between visualization and raw data views */}
+          <div className="mb-4 flex justify-end">
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                type="button"
+                onClick={() => setShowVisualizer(true)}
+                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                  showVisualizer 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-white text-blue-600 hover:bg-gray-100'
+                }`}
+              >
+                Visualization
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowVisualizer(false)}
+                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                  !showVisualizer 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-white text-blue-600 hover:bg-gray-100'
+                }`}
+              >
+                Raw Data
+              </button>
             </div>
           </div>
-          <div className="mb-6">
-            <h3 className="font-medium text-lg mb-2">Decrypted Blocks</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {response.decrypted_blocks.map((blk, idx) => (
-                <div key={idx} className="bg-green-50 p-3 rounded">
-                  <div>Block #{blk.block_index}</div>
-                  <div>Hex: <span className="font-mono text-xs break-all">{blk.decrypted_hex}</span></div>
-                  <div>Text: <span className="font-mono">{blk.decrypted_text}</span></div>
+
+          {/* Visualization view */}
+          {showVisualizer ? (
+            <VisualizationProvider>
+              <CBCPaddingOracleVisualizer 
+                data={response} 
+                width={800}
+                height={400}
+                className="mb-6"
+              />
+            </VisualizationProvider>
+          ) : (
+            <>
+              <div className="mb-4">
+                <strong>Original Message:</strong>
+                <div className="font-mono break-all bg-gray-50 p-2 rounded mt-1">{response.original_message}</div>
+              </div>
+              <div className="mb-4">
+                <strong>Encrypted (base64):</strong>
+                <div className="font-mono break-all bg-gray-50 p-2 rounded mt-1">{response.encrypted_message}</div>
+              </div>
+              <div className="mb-4">
+                <strong>IV (base64):</strong>
+                <div className="font-mono break-all bg-gray-50 p-2 rounded mt-1">{response.iv}</div>
+              </div>
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2">Blocks</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {response.blocks.map(block => (
+                    <div key={block.index} className="bg-gray-100 p-3 rounded">
+                      <div>Block #{block.index}</div>
+                      <div className="font-mono text-xs break-all">{block.data}</div>
+                      {block.decrypted && block.decrypted_data && (
+                        <div className="mt-2 text-green-700 font-semibold">Decrypted: <span className="font-mono">{block.decrypted_data}</span></div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h3 className="font-medium text-lg mb-2">Simulation Steps</h3>
-            <div className="bg-gray-50 p-4 rounded">
-              {response.simulation_steps.map((step, index) => (
-                <div key={index} className="mb-3 pb-3 border-b border-gray-200 last:border-0">
-                  <p className="font-semibold">{step.step}</p>
-                  <p className="text-gray-700">{step.description}</p>
+              </div>
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2">Decrypted Blocks</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {response.decrypted_blocks.map((blk, idx) => (
+                    <div key={idx} className="bg-green-50 p-3 rounded">
+                      <div>Block #{blk.block_index}</div>
+                      <div>Hex: <span className="font-mono text-xs break-all">{blk.decrypted_hex}</span></div>
+                      <div>Text: <span className="font-mono">{blk.decrypted_text}</span></div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+              <div>
+                <h3 className="font-medium text-lg mb-2">Simulation Steps</h3>
+                <div className="bg-gray-50 p-4 rounded">
+                  {response.simulation_steps.map((step, index) => (
+                    <div key={index} className="mb-3 pb-3 border-b border-gray-200 last:border-0">
+                      <p className="font-semibold">{step.step}</p>
+                      <p className="text-gray-700">{step.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { HastadAttackRequest, HastadAttackResponse, simulationApi, TaskResponse } from '../api/simulationApi';
 import TaskStatusTracker from '../components/TaskStatusTracker';
+import { VisualizationProvider } from '../visualizations/VisualizationContext';
+import HastadAttackVisualizer from '../visualizations/components/HastadAttackVisualizer';
 
 const HastadAttackPage: React.FC = () => {
   const [exponent, setExponent] = useState<number>(3);
@@ -14,6 +16,8 @@ const HastadAttackPage: React.FC = () => {
   const [isAsyncMode, setIsAsyncMode] = useState<boolean>(false);
   const [taskId, setTaskId] = useState<string | null>(null);
   const [taskCompleted, setTaskCompleted] = useState<boolean>(false);
+  // Visualization toggle state
+  const [showVisualizer, setShowVisualizer] = useState<boolean>(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,31 +191,89 @@ const HastadAttackPage: React.FC = () => {
         <div className="bg-white shadow-lg rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Simulation Results</h2>
           
-          <div className="mb-6">
-            <h3 className="font-medium text-lg mb-2">Message Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Original Message:</p>
-                <p className="font-mono break-all">{response.original_message}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Recovered Message:</p>
-                <p className="font-mono break-all">{response.recovered_message}</p>
-              </div>
+          {/* Toggle between visualization and raw data views */}
+          <div className="mb-4 flex justify-end">
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                type="button"
+                onClick={() => setShowVisualizer(true)}
+                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                  showVisualizer 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-white text-blue-600 hover:bg-gray-100'
+                }`}
+              >
+                Visualization
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowVisualizer(false)}
+                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                  !showVisualizer 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-white text-blue-600 hover:bg-gray-100'
+                }`}
+              >
+                Raw Data
+              </button>
             </div>
           </div>
-          
-          <div>
-            <h3 className="font-medium text-lg mb-2">Simulation Steps</h3>
-            <div className="bg-gray-50 p-4 rounded">
-              {response.simulation_steps.map((step, index) => (
-                <div key={index} className="mb-3 pb-3 border-b border-gray-200 last:border-0">
-                  <p className="font-semibold">{step.step}</p>
-                  <p className="text-gray-700">{step.description}</p>
+
+          {/* Visualization view */}
+          {showVisualizer ? (
+            <VisualizationProvider>
+              <HastadAttackVisualizer 
+                data={response} 
+                width={800}
+                height={600}
+                className="mb-6"
+              />
+            </VisualizationProvider>
+          ) : (
+            <>
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2">Message Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">Original Message:</p>
+                    <p className="font-mono break-all">{response.original_message}</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">Recovered Message:</p>
+                    <p className="font-mono break-all">{response.recovered_message}</p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+              
+              <div className="mb-6">
+                <h3 className="font-medium text-lg mb-2">Recipients</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {response.recipients.map((recipient, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded">
+                      <p className="font-semibold">Recipient {recipient.index}</p>
+                      <p className="text-xs font-mono mt-1">n: {recipient.n.substring(0, 20)}...</p>
+                      <p className="text-xs font-mono mt-1">p: {recipient.p.substring(0, 20)}...</p>
+                      <p className="text-xs font-mono mt-1">q: {recipient.q.substring(0, 20)}...</p>
+                      <p className="text-sm mt-2 font-bold text-purple-700">Ciphertext:</p>
+                      <p className="text-xs font-mono">{response.ciphertexts[index].substring(0, 20)}...</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium text-lg mb-2">Simulation Steps</h3>
+                <div className="bg-gray-50 p-4 rounded">
+                  {response.simulation_steps.map((step, index) => (
+                    <div key={index} className="mb-3 pb-3 border-b border-gray-200 last:border-0">
+                      <p className="font-semibold">{step.step}</p>
+                      <p className="text-gray-700">{step.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
