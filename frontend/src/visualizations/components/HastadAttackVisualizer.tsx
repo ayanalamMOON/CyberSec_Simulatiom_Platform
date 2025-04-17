@@ -17,7 +17,7 @@ const HastadAttackVisualizer: React.FC<HastadAttackVisualizerProps> = ({
   className = ''
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const { state } = useVisualization();
+  const { state, setState } = useVisualization();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [stepDelay, setStepDelay] = useState(1500);
@@ -56,7 +56,8 @@ const HastadAttackVisualizer: React.FC<HastadAttackVisualizerProps> = ({
     const startX = (innerWidth - totalWidth) / 2;
 
     // Set up for current step visualization
-    const currentStepData = data.simulation_steps[currentStep];
+    // Note: currentStepData is not used but kept for future enhancements
+    // const currentStepData = data.simulation_steps[currentStep];
     
     // Draw the common message at the top if appropriate for this step
     if (currentStep > 0) {
@@ -350,10 +351,15 @@ const HastadAttackVisualizer: React.FC<HastadAttackVisualizerProps> = ({
     setCurrentStep(current => current > 0 ? current - 1 : current);
   };
 
+  // Handle toggle for private key components
+  const toggleShowPrivateKeys = () => {
+    setState(prev => ({ ...prev, showLabels: !prev.showLabels }));
+  };
+
   // Re-render when data or visualization state changes
   useEffect(() => {
     renderVisualization();
-  }, [data, currentStep, state.showLabels, state.colorScheme, width, height]);
+  }, [data, currentStep, state.showLabels, state.colorScheme, width, height, renderVisualization]);
 
   // Clean up animation on unmount
   useEffect(() => {
@@ -442,10 +448,7 @@ const HastadAttackVisualizer: React.FC<HastadAttackVisualizerProps> = ({
                 type="checkbox"
                 className="mr-2"
                 checked={state.showLabels}
-                onChange={() => {
-                  const { setState } = useVisualization();
-                  setState(prev => ({ ...prev, showLabels: !prev.showLabels }));
-                }}
+                onChange={toggleShowPrivateKeys}
               />
               Show Private Key Components
             </label>

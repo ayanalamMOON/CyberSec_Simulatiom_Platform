@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { CBCPaddingOracleResponse, CBCBlock } from '../../api/simulationApi';
-import BaseVisualizer, { BaseVisualizerProps } from './BaseVisualizer';
+import { CBCPaddingOracleResponse } from '../../api/simulationApi';
 import { useVisualization } from '../VisualizationContext';
 
 interface CBCPaddingOracleVisualizerProps {
@@ -129,7 +128,8 @@ const CBCPaddingOracleVisualizer: React.FC<CBCPaddingOracleVisualizerProps> = ({
     if (data.simulation_steps && data.simulation_steps[currentStep]) {
       // Highlight the specific step being visualized
       const stepText = data.simulation_steps[currentStep].step;
-      const descriptionText = data.simulation_steps[currentStep].description;
+      // We're not using the description text in the SVG directly, but we're showing it in the UI below
+      // const descriptionText = data.simulation_steps[currentStep].description;
       
       // Add step info at the bottom
       const stepInfo = g.append("g")
@@ -254,7 +254,7 @@ const CBCPaddingOracleVisualizer: React.FC<CBCPaddingOracleVisualizerProps> = ({
   // Re-render when data or visualization state changes
   useEffect(() => {
     renderVisualization();
-  }, [data, currentStep, state.showLabels, state.colorScheme, width, height]);
+  }, [data, currentStep, state.showLabels, state.colorScheme, width, height, renderVisualization]);
 
   // Clean up animation on unmount
   useEffect(() => {
