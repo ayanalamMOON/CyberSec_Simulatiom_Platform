@@ -35,6 +35,9 @@ const Navbar: React.FC = () => {
             <Link to="/simulations" className="hover:text-primary-200 transition-colors">
               Simulations
             </Link>
+            <Link to="/simulations/cbc-padding-oracle" className="hover:text-primary-200 transition-colors">
+              CBC Padding Oracle
+            </Link>
             <Link to="/about" className="hover:text-primary-200 transition-colors">
               About
             </Link>
@@ -49,6 +52,9 @@ const Navbar: React.FC = () => {
             </Link>
             <Link to="/simulations" className="block py-2 hover:text-primary-200 transition-colors">
               Simulations
+            </Link>
+            <Link to="/simulations/cbc-padding-oracle" className="block py-2 hover:text-primary-200 transition-colors">
+              CBC Padding Oracle
             </Link>
             <Link to="/about" className="block py-2 hover:text-primary-200 transition-colors">
               About

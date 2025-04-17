@@ -1,10 +1,10 @@
 """
 Routes for simulation endpoints in the CyberSecurity Simulation Platform.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import List, Dict, Any
 
-from ..models.simulation import SimulationInfo, HastadAttackRequest, HastadAttackResponse
+from ..models.simulation import SimulationInfo, HastadAttackRequest, HastadAttackResponse, CBCPaddingOracleResponse
 from ..services.simulation_service import SimulationService
 
 router = APIRouter(
@@ -85,3 +85,17 @@ async def get_task_status(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting task status: {str(e)}")
+
+
+@router.post("/cbc-padding-oracle/run", response_model=CBCPaddingOracleResponse)
+async def run_cbc_padding_oracle(
+    params: Dict[str, Any] = Body(...),
+    service: SimulationService = Depends(get_simulation_service)
+):
+    """
+    Run a CBC Padding Oracle simulation with the provided parameters.
+    """
+    try:
+        return service.run_cbc_padding_oracle(params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")

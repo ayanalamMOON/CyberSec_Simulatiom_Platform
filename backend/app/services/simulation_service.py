@@ -137,3 +137,21 @@ class SimulationService:
             Task status information
         """
         return self.engine.get_task_status(task_id)
+    
+    def run_cbc_padding_oracle(self, params: Dict[str, Any]) -> 'CBCPaddingOracleResponse':
+        """
+        Run the CBC Padding Oracle attack simulation using the simulation engine.
+        Args:
+            params: The parameters for the simulation
+        Returns:
+            The simulation results
+        """
+        try:
+            result = self.engine.run_simulation(
+                simulation_id="cbc-padding-oracle",
+                params=params
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Error running CBC Padding Oracle simulation: {str(e)}")
+            raise

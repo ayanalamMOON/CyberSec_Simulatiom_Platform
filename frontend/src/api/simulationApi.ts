@@ -61,6 +61,38 @@ export interface TaskStatusResponse {
   error?: string;
 }
 
+// CBC Padding Oracle interfaces
+export interface CBCBlock {
+  index: number;
+  data: string;
+  decrypted: boolean;
+  decrypted_data?: string;
+}
+
+export interface CBCPaddingOracleResponse {
+  original_message: string;
+  encrypted_message: string;
+  iv: string;
+  blocks: CBCBlock[];
+  decrypted_blocks: Array<{
+    block_index: number;
+    decrypted_hex: string;
+    decrypted_text: string;
+  }>;
+  simulation_steps: Array<{
+    step: string;
+    description: string;
+  }>;
+  success: boolean;
+}
+
+export interface CBCPaddingOracleRequest {
+  message?: string;
+  key_size?: number;
+  auto_decrypt?: boolean;
+  specific_blocks?: number[];
+}
+
 // API functions
 export const simulationApi = {
   // Get list of available simulations
@@ -130,6 +162,20 @@ export const simulationApi = {
       return await simulationApi.runSimulationAsync('hastad-attack', params);
     } catch (error) {
       console.error('Error running Hastad Attack simulation asynchronously:', error);
+      throw error;
+    }
+  },
+
+  // Run CBC Padding Oracle simulation
+  runCBCPaddingOracle: async (params: CBCPaddingOracleRequest): Promise<CBCPaddingOracleResponse> => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/simulations/cbc-padding-oracle/run`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error running CBC Padding Oracle simulation:', error);
       throw error;
     }
   }

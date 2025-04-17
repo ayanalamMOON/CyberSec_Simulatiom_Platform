@@ -47,6 +47,25 @@ class HastadAttackResponse(BaseModel):
     simulation_steps: List[SimulationStep]
 
 
+class CBCBlock(BaseModel):
+    """Model representing a ciphertext block in CBC mode."""
+    index: int
+    data: str  # base64-encoded ciphertext block
+    decrypted: bool = False
+    decrypted_data: Optional[str] = None
+
+
+class CBCPaddingOracleResponse(BaseModel):
+    """Response model for CBC Padding Oracle simulation."""
+    original_message: str
+    encrypted_message: str
+    iv: str
+    blocks: List[CBCBlock]
+    decrypted_blocks: List[dict]
+    simulation_steps: List[SimulationStep]
+    success: bool
+
+
 class SimulationStatus(str, Enum):
     """Status of a simulation execution."""
     PENDING = "pending"
