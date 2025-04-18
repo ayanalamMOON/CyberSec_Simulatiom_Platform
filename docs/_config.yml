@@ -3,13 +3,12 @@ title: CyberSec Simulation Platform
 description: >-
   An interactive web-based educational platform to learn and visualize 
   real-world cybersecurity challenges through hands-on simulations.
-baseurl: "/CyberSec_Simulation_Platform" # corrected spelling
-url: "https://ayanalamMOON.github.io" # replace with your actual GitHub username
+baseurl: "/CyberSec_Simulatiom_Platform" # Match your repository name exactly
+url: "https://ayanalamMOON.github.io" # Use your actual GitHub username
 
 # Build settings
 markdown: kramdown
 theme: jekyll-theme-hacker
-remote_theme: pages-themes/hacker@v0.2.0
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
