@@ -1,0 +1,38 @@
+---
+layout: default
+---
+
+<div class="simulation-container">
+  <div class="simulation-header">
+    <h1 class="simulation-title">{{ page.title }}</h1>
+    <p class="simulation-description">{{ page.description }}</p>
+    {% if page.difficulty %}
+    <div class="simulation-difficulty">
+      <span class="label">Difficulty:</span> 
+      <span class="level level-{{ page.difficulty | downcase }}">{{ page.difficulty }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="simulation-content">
+    {{ content }}
+  </div>
+  
+  {% if page.prerequisites %}
+  <div class="simulation-prerequisites">
+    <h2>Prerequisites</h2>
+    <ul>
+      {% for prerequisite in page.prerequisites %}
+      <li>{{ prerequisite }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  
+  <div class="simulation-navigation">
+    <a href="{{ '/simulations/' | relative_url }}" class="button">Back to Simulations</a>
+    {% if page.demo_url %}
+    <a href="{{ page.demo_url }}" class="button button-primary">Try this Simulation</a>
+    {% endif %}
+  </div>
+</div>

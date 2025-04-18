@@ -1,0 +1,59 @@
+# Site settings
+title: CyberSec Simulation Platform
+description: >-
+  An interactive web-based educational platform to learn and visualize 
+  real-world cybersecurity challenges through hands-on simulations.
+baseurl: "/CyberSec_Simulation_Platform" # corrected spelling
+url: "https://ayanalamMOON.github.io" # replace with your actual GitHub username
+
+# Build settings
+markdown: kramdown
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Collections
+collections:
+  simulations:
+    output: true
+    permalink: /simulations/:path/
+
+# Default front matter
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "simulations"
+    values:
+      layout: "simulation"
+
+# Navigation
+header_pages:
+  - overview.md
+  - architecture.md
+  - user-guide.md
+  - developer-guide.md
+  - api-docs.md
+  - simulations/index.md
+  - blog/index.md
+
+# Social links
+github_username: yourgithubusername # replace with your actual GitHub username
+twitter_username: yourtwitter # optional
+linkedin_username: yourlinkedin # optional
+
+# Analytics (optional)
+# google_analytics: UA-XXXXXXXX-X
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .gitignore
+  - README.md
