@@ -8,10 +8,13 @@ url: "https://ayanalamMOON.github.io" # replace with your actual GitHub username
 
 # Build settings
 markdown: kramdown
-theme: minima
+theme: jekyll-theme-hacker
+remote_theme: pages-themes/hacker@v0.2.0
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-remote-theme
 
 # Collections
 collections:

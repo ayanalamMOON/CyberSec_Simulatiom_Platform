@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+    {% seo %}
+  </head>
+
+  <body>
+    <header>
+      <div class="container">
+        <a id="a-title" href="{{ '/' | relative_url }}">
+          <h1>{{ site.title | default: site.github.repository_name }}</h1>
+        </a>
+        <h2>{{ site.description | default: site.github.project_tagline }}</h2>
+
+        <nav class="site-nav">
+          <div class="trigger">
+            <a class="page-link" href="{{ '/overview' | relative_url }}">Overview</a>
+            <a class="page-link" href="{{ '/architecture' | relative_url }}">Architecture</a>
+            <a class="page-link" href="{{ '/user-guide' | relative_url }}">User Guide</a>
+            <a class="page-link" href="{{ '/developer-guide' | relative_url }}">Developer Guide</a>
+            <a class="page-link" href="{{ '/api-docs' | relative_url }}">API Docs</a>
+            <a class="page-link" href="{{ '/simulations' | relative_url }}">Simulations</a>
+            <a class="page-link" href="{{ '/blog' | relative_url }}">Blog</a>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        {% include breadcrumbs.html %}
+        
+        {{ content }}
+      </section>
+    </div>
+
+    <div class="container">
+      <footer class="site-footer">
+        <div class="footer-container">
+          <div class="footer-col">
+            <p>{{ site.description }}</p>
+            <p>&copy; {{ site.time | date: '%Y' }} {{ site.title | default: site.github.repository_name }}. All rights reserved.</p>
+          </div>
+          
+          <div class="footer-col">
+            <h3>Links</h3>
+            <ul class="footer-links">
+              <li><a href="{{ '/overview' | relative_url }}">Overview</a></li>
+              <li><a href="{{ '/architecture' | relative_url }}">Architecture</a></li>
+              <li><a href="{{ '/simulations' | relative_url }}">Simulations</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-col">
+            <h3>Connect</h3>
+            <ul class="social-media-list">
+              {% if site.github_username %}
+              <li>
+                <a href="https://github.com/{{ site.github_username }}">
+                  <span class="icon">GitHub</span>
+                  <span class="username">{{ site.github_username }}</span>
+                </a>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    {% if site.google_analytics %}
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', '{{ site.google_analytics }}', 'auto');
+        ga('send', 'pageview');
+      </script>
+    {% endif %}
+    
+    <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
+  </body>
+</html>
