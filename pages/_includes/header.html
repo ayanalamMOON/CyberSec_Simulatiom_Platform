@@ -1,0 +1,20 @@
+<header class="site-header">
+  <div class="header-container">
+    <a class="site-title" href="{{ "/" | relative_url }}">
+      <span class="logo">🔐</span>
+      {{ site.title | escape }}
+    </a>
+    
+    <nav class="site-nav">
+      <div class="trigger">
+        <a class="page-link" href="{{ '/overview' | relative_url }}">Overview</a>
+        <a class="page-link" href="{{ '/architecture' | relative_url }}">Architecture</a>
+        <a class="page-link" href="{{ '/user-guide' | relative_url }}">User Guide</a>
+        <a class="page-link" href="{{ '/developer-guide' | relative_url }}">Developer Guide</a>
+        <a class="page-link" href="{{ '/api-docs' | relative_url }}">API Docs</a>
+        <a class="page-link" href="{{ '/simulations' | relative_url }}">Simulations</a>
+        <a class="page-link" href="{{ '/blog' | relative_url }}">Blog</a>
+      </div>
+    </nav>
+  </div>
+</header>
