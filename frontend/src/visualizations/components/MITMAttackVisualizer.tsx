@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import { MITMAttackResponse, MITMMessage } from '../../api/simulationApi';
+import { MITMAttackResponse } from '../../api/simulationApi';
 
 interface MITMAttackVisualizerProps {
   data: MITMAttackResponse;
@@ -34,12 +34,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Extract participants and messages for easier access
-  const { participants, messages, simulation_steps: steps } = data;
-  
-  // Find Alice, Bob and Eve from participants
-  const alice = participants.find(p => p.id === 'alice');
-  const bob = participants.find(p => p.id === 'bob');
-  const eve = participants.find(p => p.id === 'eve');
+  const { messages, simulation_steps: steps } = data;
   
   // Auto-advance steps when playing
   useEffect(() => {
@@ -67,7 +62,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     if (!svgRef.current) return;
     
     renderVisualization();
-  }, [state.currentStep, state.showLabels]);
+  }, [state.currentStep, state.showLabels, renderVisualization]);
   
   const togglePlay = () => {
     setState(prev => ({ ...prev, playing: !prev.playing }));
@@ -87,6 +82,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     }
   };
   
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const renderVisualization = () => {
     if (!svgRef.current) return;
     
@@ -169,7 +165,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     }
     
     // Visualize connections based on current step
-    visualizeConnections(g, state.currentStep, {
+    visualizeConnections(g, state.currentStep, svg, {
       aliceX, aliceY, bobX, bobY, eveX, eveY
     });
   };
@@ -232,6 +228,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
   const visualizeConnections = (
     g: d3.Selection<SVGGElement, unknown, null, undefined>,
     stepIndex: number,
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
     coords: {
       aliceX: number,
       aliceY: number,
@@ -252,7 +249,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     
     // Connection establishment phase
     if (stepName.includes('connection')) {
-      drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', ''); 
+      drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', '', svg); 
       return;
     }
     
@@ -260,11 +257,11 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     if (stepName.includes('certificate')) {
       if (stepName.includes('interception')) {
         // Eve is intercepting certificates
-        drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', 'Certificate');
-        drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', 'Fake Certificate');
+        drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', 'Certificate', svg);
+        drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', 'Fake Certificate', svg);
       } else {
         // Normal certificate exchange
-        drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', 'Certificate');
+        drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', 'Certificate', svg);
       }
       return;
     }
@@ -273,11 +270,11 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     if (stepName.includes('key exchange')) {
       if (stepName.includes('intercepted')) {
         // Eve is intercepting key exchange
-        drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', 'Key');
-        drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', 'Key');
+        drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', 'Key', svg);
+        drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', 'Key', svg);
       } else {
         // Normal key exchange
-        drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', 'Key');
+        drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', 'Key', svg);
       }
       return;
     }
@@ -306,7 +303,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
             relevantMessage.content;
         
         // Draw first part of interception (sender to Eve)
-        drawConnection(g, senderX, senderY, eveX, eveY, senderColor, messageContent);
+        drawConnection(g, senderX, senderY, eveX, eveY, senderColor, messageContent, svg);
         
         // For intercepted & modified messages or decryption steps
         if (stepName.includes('decrypted') || stepName.includes('modified')) {
@@ -318,10 +315,10 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
         }
         
         // For re-encrypted or forwarded messages
-        if (stepName.includes('re-encrypted') || stepName.includes('intercepted') && !stepName.includes('decrypted')) {
+        if (stepName.includes('re-encrypted') || (stepName.includes('intercepted') && !stepName.includes('decrypted'))) {
           // Draw the second part (Eve to receiver)
           const finalContent = relevantMessage.modified ? '🔄 Modified' : messageContent;
-          drawConnection(g, eveX, eveY, receiverX, receiverY, '#ed64a6', finalContent);
+          drawConnection(g, eveX, eveY, receiverX, receiverY, '#ed64a6', finalContent, svg);
         }
       } else {
         // Direct communication (no interception)
@@ -331,7 +328,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
             relevantMessage.content.substring(0, 15) + '...' : 
             relevantMessage.content;
         
-        drawConnection(g, senderX, senderY, receiverX, receiverY, senderColor, messageContent);
+        drawConnection(g, senderX, senderY, receiverX, receiverY, senderColor, messageContent, svg);
       }
       return;
     }
@@ -339,15 +336,15 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     // Default: show current connection state based on protocol
     if (data.protocol === 'HTTP' || data.protocol === 'FTP' || data.protocol === 'Telnet') {
       // Insecure protocols - show Eve can see everything
-      drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', '');
-      drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', '');
+      drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', '', svg);
+      drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', '', svg);
     } else {
       // Secure protocols - depends on if active MITM is successful
       if (data.attack_type.includes("Spoofing") || data.attack_type.includes("Interception")) {
-        drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', '🔒');
-        drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', '🔒');
+        drawConnection(g, aliceX, aliceY, eveX, eveY, '#4299e1', '🔒', svg);
+        drawConnection(g, eveX, eveY, bobX, bobY, '#ed64a6', '🔒', svg);
       } else {
-        drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', '🔒 Secure');
+        drawConnection(g, aliceX, aliceY, bobX, bobY, '#4299e1', '🔒 Secure', svg);
       }
     }
   };
@@ -359,7 +356,8 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     x2: number,
     y2: number,
     color: string,
-    label: string
+    label: string,
+    svg: d3.Selection<SVGSVGElement, unknown, null, undefined>
   ) => {
     // Draw line with arrow
     const arrowId = `arrow-${Math.random().toString(36).substring(2, 9)}`;
