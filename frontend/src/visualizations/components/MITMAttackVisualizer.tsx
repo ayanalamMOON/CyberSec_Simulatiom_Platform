@@ -36,52 +36,7 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
   // Extract participants and messages for easier access
   const { messages, simulation_steps: steps } = data;
   
-  // Auto-advance steps when playing
-  useEffect(() => {
-    if (state.playing) {
-      timerRef.current = setTimeout(() => {
-        const nextStep = state.currentStep + 1;
-        if (nextStep < steps.length) {
-          setState(prev => ({ ...prev, currentStep: nextStep }));
-        } else {
-          // Stop playing when we reach the end
-          setState(prev => ({ ...prev, playing: false }));
-        }
-      }, state.animationSpeed);
-    }
-    
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [state.playing, state.currentStep, state.animationSpeed, steps.length]);
-
-  // Render visualization whenever the step changes
-  useEffect(() => {
-    if (!svgRef.current) return;
-    
-    renderVisualization();
-  }, [state.currentStep, state.showLabels, renderVisualization]);
-  
-  const togglePlay = () => {
-    setState(prev => ({ ...prev, playing: !prev.playing }));
-  };
-  
-  const toggleLabels = () => {
-    setState(prev => ({ ...prev, showLabels: !prev.showLabels }));
-  };
-  
-  const changeSpeed = (speedMultiplier: number) => {
-    setState(prev => ({ ...prev, animationSpeed: 1500 / speedMultiplier }));
-  };
-  
-  const goToStep = (stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < steps.length) {
-      setState(prev => ({ ...prev, currentStep: stepIndex }));
-    }
-  };
-  
+  // Define renderVisualization function before it's used in the useEffect dependency array
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const renderVisualization = () => {
     if (!svgRef.current) return;
@@ -168,6 +123,52 @@ const MITMAttackVisualizer: React.FC<MITMAttackVisualizerProps> = ({
     visualizeConnections(g, state.currentStep, svg, {
       aliceX, aliceY, bobX, bobY, eveX, eveY
     });
+  };
+  
+  // Auto-advance steps when playing
+  useEffect(() => {
+    if (state.playing) {
+      timerRef.current = setTimeout(() => {
+        const nextStep = state.currentStep + 1;
+        if (nextStep < steps.length) {
+          setState(prev => ({ ...prev, currentStep: nextStep }));
+        } else {
+          // Stop playing when we reach the end
+          setState(prev => ({ ...prev, playing: false }));
+        }
+      }, state.animationSpeed);
+    }
+    
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [state.playing, state.currentStep, state.animationSpeed, steps.length]);
+
+  // Render visualization whenever the step changes
+  useEffect(() => {
+    if (!svgRef.current) return;
+    
+    renderVisualization();
+  }, [state.currentStep, state.showLabels, renderVisualization]);
+  
+  const togglePlay = () => {
+    setState(prev => ({ ...prev, playing: !prev.playing }));
+  };
+  
+  const toggleLabels = () => {
+    setState(prev => ({ ...prev, showLabels: !prev.showLabels }));
+  };
+  
+  const changeSpeed = (speedMultiplier: number) => {
+    setState(prev => ({ ...prev, animationSpeed: 1500 / speedMultiplier }));
+  };
+  
+  const goToStep = (stepIndex: number) => {
+    if (stepIndex >= 0 && stepIndex < steps.length) {
+      setState(prev => ({ ...prev, currentStep: stepIndex }));
+    }
   };
   
   const drawParticipant = (
