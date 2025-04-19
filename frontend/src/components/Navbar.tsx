@@ -11,7 +11,8 @@ import {
   FaBars, 
   FaTimes, 
   FaMoon, 
-  FaSun 
+  FaSun,
+  FaTrophy
 } from 'react-icons/fa';
 
 const Navbar: React.FC = () => {
@@ -115,6 +116,7 @@ const Navbar: React.FC = () => {
               { path: '/', text: 'Home', icon: <FaHome /> },
               { path: '/simulations', text: 'Simulations', icon: <FaFlask /> },
               { path: '/simulations/cbc-padding-oracle', text: 'CBC Padding Oracle', icon: <FaLock /> },
+              { path: '/challenges', text: 'Challenges', icon: <FaTrophy /> },
               { path: '/about', text: 'About', icon: <FaInfoCircle /> },
             ].map((item) => (
               <Link 
@@ -158,6 +160,7 @@ const Navbar: React.FC = () => {
                   { path: '/', text: 'Home', icon: <FaHome /> },
                   { path: '/simulations', text: 'Simulations', icon: <FaFlask /> },
                   { path: '/simulations/cbc-padding-oracle', text: 'CBC Padding Oracle', icon: <FaLock /> },
+                  { path: '/challenges', text: 'Challenges', icon: <FaTrophy /> },
                   { path: '/about', text: 'About', icon: <FaInfoCircle /> }
                 ].map((item) => (
                   <Link

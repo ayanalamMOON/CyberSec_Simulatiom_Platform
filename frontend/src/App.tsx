@@ -14,6 +14,8 @@ import HastadAttackPage from './pages/HastadAttackPage';
 import AboutPage from './pages/AboutPage';
 import CBCPaddingOraclePage from './pages/CBCPaddingOraclePage';
 import MITMAttackPage from './pages/MITMAttackPage';
+import ChallengeLibraryPage from './pages/ChallengeLibraryPage';
+import ChallengeDetailPage from './pages/ChallengeDetailPage';
 
 const App: React.FC = () => {
   return (
@@ -28,6 +30,8 @@ const App: React.FC = () => {
             <Route path="/simulations/hastad-attack" element={<HastadAttackPage />} />
             <Route path="/simulations/cbc-padding-oracle" element={<CBCPaddingOraclePage />} />
             <Route path="/simulations/mitm-attack" element={<MITMAttackPage />} />
+            <Route path="/challenges" element={<ChallengeLibraryPage />} />
+            <Route path="/challenges/:id" element={<ChallengeDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>
         </main>

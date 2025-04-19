@@ -11,7 +11,11 @@ import {
   FaChartBar, 
   FaLightbulb,
   FaRocket,
-  FaArrowRight
+  FaArrowRight,
+  FaTrophy,
+  FaClock,
+  FaEye,
+  FaTasks
 } from 'react-icons/fa';
 
 const HomePage: React.FC = () => {
@@ -22,6 +26,11 @@ const HomePage: React.FC = () => {
   });
   
   const [simulationsRef, simulationsInView] = useInView({
+    threshold: 0.1,
+    triggerOnce: true
+  });
+  
+  const [challengesRef, challengesInView] = useInView({
     threshold: 0.1,
     triggerOnce: true
   });
@@ -73,6 +82,34 @@ const HomePage: React.FC = () => {
       description: 'See how MITM attacks work and how protocols can be compromised.',
       icon: <FaUserSecret size={28} />,
       tags: ['Network', 'Protocol', 'TLS'],
+      color: 'from-green-500 to-teal-600'
+    }
+  ];
+  
+  // Challenge mode features
+  const challengeFeatures = [
+    {
+      icon: <FaTrophy size={28} />,
+      title: 'CTF-Style Challenges',
+      description: 'Test your skills with capture-the-flag style challenges using our simulation engine',
+      color: 'from-orange-500 to-red-600'
+    },
+    {
+      icon: <FaClock size={28} />,
+      title: 'Timed Exercises',
+      description: 'Race against the clock to complete security challenges and earn bonus points',
+      color: 'from-blue-500 to-cyan-600'
+    },
+    {
+      icon: <FaEye size={28} />,
+      title: 'Blind Scenarios',
+      description: 'Identify attack types from patterns and behaviors without knowing the attack in advance',
+      color: 'from-purple-500 to-violet-600'
+    },
+    {
+      icon: <FaTasks size={28} />,
+      title: 'Multi-Stage Attacks',
+      description: 'Complete progressive attack scenarios that build upon previous stages',
       color: 'from-green-500 to-teal-600'
     }
   ];
@@ -335,6 +372,67 @@ const HomePage: React.FC = () => {
         </div>
       </motion.section>
 
+      {/* New section: Interactive Challenge Mode */}
+      <motion.section 
+        ref={challengesRef}
+        variants={containerVariants}
+        initial="hidden"
+        animate={challengesInView ? "visible" : "hidden"}
+        className="py-12"
+      >
+        <motion.h2 
+          variants={itemVariants}
+          className="text-3xl font-bold text-center mb-2 dark:text-white"
+        >
+          <FaTrophy className="inline-block mr-2 text-yellow-500" />
+          Interactive Challenge Mode
+        </motion.h2>
+        
+        <motion.p 
+          variants={itemVariants}
+          className="text-center text-gray-600 dark:text-gray-300 mb-12"
+        >
+          Put your skills to the test with our new gamified cybersecurity challenges
+        </motion.p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {challengeFeatures.map((feature, index) => (
+            <motion.div 
+              key={feature.title}
+              variants={itemVariants}
+              className="rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-white dark:bg-darksurface"
+              whileHover={{ y: -5 }}
+            >
+              <div className={`bg-gradient-to-r ${feature.color} p-6 flex justify-center items-center text-white h-24`}>
+                <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                  {feature.icon}
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold mb-2 dark:text-white">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{feature.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-center mt-10"
+        >
+          <Link to="/challenges">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-3 px-10 rounded-lg transition-all flex items-center"
+            >
+              <FaTrophy className="mr-2" />
+              Try Challenges Now
+            </motion.button>
+          </Link>
+        </motion.div>
+      </motion.section>
+
       {/* Call to Action */}
       <motion.section 
         className="bg-gradient-to-r from-gray-900 to-gray-800 dark:from-darkbg dark:to-darksurface text-white py-16 px-6 rounded-2xl shadow-xl text-center"
@@ -347,16 +445,29 @@ const HomePage: React.FC = () => {
         <p className="text-xl mb-8 max-w-2xl mx-auto">
           Dive into our comprehensive library of simulations and start learning today.
         </p>
-        <Link to="/simulations">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-secondary-500 to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white font-bold py-3 px-10 rounded-lg transition-all flex items-center mx-auto"
-          >
-            <FaRocket className="mr-2" />
-            Explore All Simulations
-          </motion.button>
-        </Link>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link to="/simulations">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-secondary-500 to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white font-bold py-3 px-10 rounded-lg transition-all flex items-center"
+            >
+              <FaRocket className="mr-2" />
+              Explore Simulations
+            </motion.button>
+          </Link>
+          
+          <Link to="/challenges">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-3 px-10 rounded-lg transition-all flex items-center"
+            >
+              <FaTrophy className="mr-2" />
+              Take a Challenge
+            </motion.button>
+          </Link>
+        </div>
       </motion.section>
     </div>
   );

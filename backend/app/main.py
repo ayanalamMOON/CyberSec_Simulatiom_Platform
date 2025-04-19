@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import simulation_routes
+from .routes import simulation_routes, challenge_routes
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +31,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(simulation_routes.router)
+app.include_router(challenge_routes.router)
 
 
 @app.get("/")
@@ -40,6 +41,7 @@ async def root():
         "message": "Welcome to the CyberSecurity Simulation Platform API",
         "documentation": "/docs",
         "simulations": "/simulations",
+        "challenges": "/challenges",
     }
 
 
