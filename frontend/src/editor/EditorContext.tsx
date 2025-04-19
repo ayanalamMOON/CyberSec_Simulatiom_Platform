@@ -1,8 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface EditorContextType {
   content: string;
   setContent: (value: string) => void;
+}
+
+interface EditorProviderProps {
+  children: ReactNode;
+  initialContent?: string;
+  onContentChange?: (content: string) => void;
 }
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
@@ -13,8 +19,20 @@ export const useEditor = () => {
   return context;
 };
 
-export const EditorProvider = ({ children }: { children: ReactNode }) => {
-  const [content, setContent] = useState('');
+export const EditorProvider: React.FC<EditorProviderProps> = ({ 
+  children, 
+  initialContent = '', 
+  onContentChange 
+}) => {
+  const [content, setContent] = useState(initialContent);
+  
+  // Notify parent component when content changes
+  useEffect(() => {
+    if (onContentChange) {
+      onContentChange(content);
+    }
+  }, [content, onContentChange]);
+
   return (
     <EditorContext.Provider value={{ content, setContent }}>
       {children}

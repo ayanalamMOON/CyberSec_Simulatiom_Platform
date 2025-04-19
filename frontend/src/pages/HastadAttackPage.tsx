@@ -3,6 +3,9 @@ import { HastadAttackRequest, HastadAttackResponse, simulationApi, TaskResponse 
 import TaskStatusTracker from '../components/TaskStatusTracker';
 import { VisualizationProvider } from '../visualizations/VisualizationContext';
 import HastadAttackVisualizer from '../visualizations/components/HastadAttackVisualizer';
+import { EditorProvider } from '../editor/EditorContext';
+import CodeEditor from '../editor/CodeEditor';
+import TextEditor from '../editor/TextEditor';
 
 const HastadAttackPage: React.FC = () => {
   const [exponent, setExponent] = useState<number>(3);
@@ -18,6 +21,12 @@ const HastadAttackPage: React.FC = () => {
   const [taskCompleted, setTaskCompleted] = useState<boolean>(false);
   // Visualization toggle state
   const [showVisualizer, setShowVisualizer] = useState<boolean>(true);
+  // Editor state
+  const [editorType, setEditorType] = useState<'code' | 'text'>('text');
+
+  const handleEditorContentChange = (content: string) => {
+    setMessage(content);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +36,15 @@ const HastadAttackPage: React.FC = () => {
     setTaskId(null);
     setTaskCompleted(false);
 
+    // Only parse as integer if the message is intended to be numeric
+    const messageValue = message.trim() !== '' ? 
+      (editorType === 'code' ? parseInt(message, 10) : message) : 
+      undefined;
+
     const params: HastadAttackRequest = {
       exponent: exponent,
       key_size: keySize,
-      ...(message ? { message: parseInt(message, 10) } : {})
+      ...(messageValue !== undefined ? { message: messageValue } : {})
     };
 
     try {
@@ -59,10 +73,14 @@ const HastadAttackPage: React.FC = () => {
       if (taskStatus.has_result) {
         // If the task has a result, fetch the complete simulation result
         // In a real implementation, you might want to add an endpoint to fetch the result directly
+        const messageValue = message.trim() !== '' ? 
+          (editorType === 'code' ? parseInt(message, 10) : message) : 
+          undefined;
+
         const result = await simulationApi.runHastadAttack({
           exponent: exponent,
           key_size: keySize,
-          ...(message ? { message: parseInt(message, 10) } : {})
+          ...(messageValue !== undefined ? { message: messageValue } : {})
         });
         setResponse(result);
       }
@@ -93,6 +111,54 @@ const HastadAttackPage: React.FC = () => {
       <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Simulation Parameters</h2>
         
+        {/* Editor type selector */}
+        <div className="mb-4 flex">
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              onClick={() => setEditorType('text')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                editorType === 'text' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white text-blue-600 hover:bg-gray-100'
+              }`}
+            >
+              Text Editor
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditorType('code')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                editorType === 'code' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white text-blue-600 hover:bg-gray-100'
+              }`}
+            >
+              Code Editor
+            </button>
+          </div>
+        </div>
+        
+        {/* Monaco Editor */}
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-2">Message (Optional)</label>
+          <div style={{ height: '300px', border: '1px solid #e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+            <EditorProvider 
+              initialContent={message} 
+              onContentChange={handleEditorContentChange}
+            >
+              {editorType === 'text' ? (
+                <TextEditor />
+              ) : (
+                <CodeEditor />
+              )}
+            </EditorProvider>
+          </div>
+          <p className="text-sm text-gray-600 mt-1">
+            Enter a specific number or leave blank for a random message
+          </p>
+        </div>
+        
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
@@ -122,19 +188,6 @@ const HastadAttackPage: React.FC = () => {
               />
               <p className="text-sm text-gray-500 mt-1">Range: 256-2048 bits</p>
             </div>
-          </div>
-          
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2">Message (Optional)</label>
-            <input
-              type="text"
-              placeholder="Enter a specific number or leave blank for random"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full border rounded px-3 py-2"
-              disabled={loading}
-            />
-            <p className="text-sm text-gray-500 mt-1">Leave blank for a random message</p>
           </div>
           
           {/* New option for async mode */}
