@@ -27,6 +27,13 @@ const HastadAttackPage: React.FC = () => {
   const handleEditorContentChange = (content: string) => {
     setMessage(content);
   };
+  
+  // Helper function to convert message to a number or undefined
+  const parseMessageToNumber = (msg: string): number | undefined => {
+    if (msg.trim() === '') return undefined;
+    const parsed = parseInt(msg, 10);
+    return isNaN(parsed) ? undefined : parsed;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +43,8 @@ const HastadAttackPage: React.FC = () => {
     setTaskId(null);
     setTaskCompleted(false);
 
-    // Only parse as integer if the message is intended to be numeric
-    const messageValue = message.trim() !== '' ? 
-      (editorType === 'code' ? parseInt(message, 10) : message) : 
-      undefined;
+    // Parse the message to a number or undefined
+    const messageValue = parseMessageToNumber(message);
 
     const params: HastadAttackRequest = {
       exponent: exponent,
@@ -71,12 +76,10 @@ const HastadAttackPage: React.FC = () => {
       const taskStatus = await simulationApi.getTaskStatus(completedTaskId);
       
       if (taskStatus.has_result) {
-        // If the task has a result, fetch the complete simulation result
-        // In a real implementation, you might want to add an endpoint to fetch the result directly
-        const messageValue = message.trim() !== '' ? 
-          (editorType === 'code' ? parseInt(message, 10) : message) : 
-          undefined;
+        // Parse message to number again for consistency
+        const messageValue = parseMessageToNumber(message);
 
+        // If the task has a result, fetch the complete simulation result
         const result = await simulationApi.runHastadAttack({
           exponent: exponent,
           key_size: keySize,
@@ -155,7 +158,7 @@ const HastadAttackPage: React.FC = () => {
             </EditorProvider>
           </div>
           <p className="text-sm text-gray-600 mt-1">
-            Enter a specific number or leave blank for a random message
+            Enter a number or leave blank for a random message. Non-numeric input will be ignored.
           </p>
         </div>
         
