@@ -21,8 +21,8 @@ class ChallengeStage(BaseModel):
     name: str
     description: str
     simulation_id: str
-    parameters: Optional[Dict[str, Any]] = None
-    hints: Optional[List[str]] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    hints: List[str] = Field(default_factory=list)
     points: int
     solution: Dict[str, Any] = Field(default_factory=dict)
     time_limit_seconds: Optional[int] = None
@@ -37,11 +37,11 @@ class Challenge(BaseModel):
     difficulty: str
     tags: List[str]
     points: int
-    simulation_ids: Optional[List[str]] = None
-    stages: Optional[List[ChallengeStage]] = None
+    simulation_ids: List[str] = Field(default_factory=list)
+    stages: List[ChallengeStage] = Field(default_factory=list)
     time_limit_seconds: Optional[int] = None
-    parameters: Optional[Dict[str, Any]] = None
-    hidden_parameters: Optional[Dict[str, Any]] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    hidden_parameters: Dict[str, Any] = Field(default_factory=dict)
     expected_answer: Optional[str] = None
     hints: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.now)

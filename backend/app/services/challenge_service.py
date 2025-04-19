@@ -2,10 +2,9 @@
 Service for handling challenge operations.
 """
 import logging
-import time
 import uuid
 from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from ..models.challenge import (
     Challenge,
@@ -40,7 +39,9 @@ class ChallengeService:
         self.challenges["ctf-rsa-basics"] = Challenge(
             id="ctf-rsa-basics",
             name="RSA Key Recovery Challenge",
-            description="Recover the private key and decrypt the flag using the given public parameters.",
+            description=(
+                "Recover the private key and decrypt the flag using the given public parameters."
+            ),
             type=ChallengeType.CTF,
             difficulty="Medium",
             tags=["Cryptography", "RSA", "CTF"],
@@ -65,7 +66,9 @@ class ChallengeService:
         self.challenges["timed-mitm-attack"] = Challenge(
             id="timed-mitm-attack",
             name="Race Against Time: MITM Attack",
-            description="Complete the Man-in-the-Middle attack before the communication ends.",
+            description=(
+                "Complete the Man-in-the-Middle attack before the communication ends."
+            ),
             type=ChallengeType.TIMED,
             difficulty="Easy",
             tags=["Network", "MITM", "Timed"],
@@ -83,7 +86,9 @@ class ChallengeService:
         self.challenges["blind-attack-identification"] = Challenge(
             id="blind-attack-identification",
             name="Mystery Attack Identification",
-            description="Analyze the patterns and identify which cryptographic attack is being performed.",
+            description=(
+                "Analyze the patterns and identify which cryptographic attack is being performed."
+            ),
             type=ChallengeType.BLIND,
             difficulty="Hard",
             tags=["Cryptography", "Analysis", "Identification"],
@@ -114,7 +119,9 @@ class ChallengeService:
             ChallengeStage(
                 id="stage2",
                 name="Interception Setup",
-                description="Configure your tools to intercept the communication.",
+                description=(
+                    "Configure your tools to intercept the communication."
+                ),
                 simulation_id="mitm-attack",
                 parameters={
                     "mode": "active",
@@ -126,7 +133,9 @@ class ChallengeService:
             ChallengeStage(
                 id="stage3",
                 name="Key Extraction",
-                description="Extract encryption keys from the intercepted data.",
+                description=(
+                    "Extract encryption keys from the intercepted data."
+                ),
                 simulation_id="hastad-attack",
                 parameters={
                     "key_size": 512,
@@ -140,7 +149,10 @@ class ChallengeService:
         self.challenges["multi-stage-advanced-mitm"] = Challenge(
             id="multi-stage-advanced-mitm",
             name="Advanced Persistent Threat Simulation",
-            description="Complete a multi-stage attack, starting with reconnaissance and ending with data extraction.",
+            description=(
+                "Complete a multi-stage attack, starting with reconnaissance "
+                "and ending with data extraction."
+            ),
             type=ChallengeType.MULTI_STAGE,
             difficulty="Expert",
             tags=["APT", "Multi-Stage", "Network", "Cryptography"],
@@ -157,7 +169,9 @@ class ChallengeService:
         """Get a specific challenge by ID."""
         return self.challenges.get(challenge_id)
     
-    def start_challenge(self, challenge_id: str, user_id: Optional[str] = None) -> ChallengeAttempt:
+    def start_challenge(
+        self, challenge_id: str, user_id: Optional[str] = None
+    ) -> ChallengeAttempt:
         """Start a challenge attempt."""
         if challenge_id not in self.challenges:
             raise ValueError(f"Challenge {challenge_id} not found")
@@ -183,14 +197,17 @@ class ChallengeService:
         
         # Update attempt
         attempt.end_time = datetime.now()
-        attempt.time_spent_seconds = int((attempt.end_time - attempt.start_time).total_seconds())
+        attempt.time_spent_seconds = int(
+            (attempt.end_time - attempt.start_time).total_seconds()
+        )
         
         # For multi-stage challenges
         if challenge.type == ChallengeType.MULTI_STAGE:
             return self._process_multi_stage_answer(attempt, challenge, answer)
         
         # For timed challenges
-        if challenge.type == ChallengeType.TIMED and challenge.time_limit_seconds:
+        if (challenge.type == ChallengeType.TIMED and 
+                challenge.time_limit_seconds):
             if attempt.time_spent_seconds > challenge.time_limit_seconds:
                 return ChallengeResult(
                     success=False,
@@ -213,6 +230,10 @@ class ChallengeService:
         attempt.score = score
         attempt.answers[challenge.id] = answer
         
+        # Prepare feedback message
+        feedback = "Correct answer!" if success else "Incorrect answer, try again."
+        next_id = self._get_next_challenge(challenge.id) if success else None
+        
         return ChallengeResult(
             success=success,
             score=score,
@@ -220,8 +241,8 @@ class ChallengeService:
             hints_used=attempt.hints_used,
             correct_stages=1 if success else 0,
             total_stages=1,
-            feedback="Correct answer!" if success else "Incorrect answer, try again.",
-            next_challenge_id=self._get_next_challenge(challenge.id) if success else None
+            feedback=feedback,
+            next_challenge_id=next_id
         )
     
     def _process_multi_stage_answer(
@@ -295,7 +316,7 @@ class ChallengeService:
         return challenge.stages[attempt.current_stage_index]
     
     def get_hint(self, attempt_id: str) -> Optional[str]:
-        """Get a hint for the current challenge, tracking that a hint was used."""
+        """Get a hint for the current challenge, tracking hint usage."""
         if attempt_id not in self.attempts:
             return None
         
@@ -316,27 +337,55 @@ class ChallengeService:
             # Direct comparison for challenges with expected answer
             return str(answer).lower() == str(challenge.expected_answer).lower()
         else:
-            # For simulation-based challenges, we might need to run a simulation
-            # and check the result
+            # For simulation-based challenges, run a simulation and check result
             return self._validate_simulation_answer(challenge, answer)
     
-    def _validate_stage_answer(self, stage: ChallengeStage, answer: Any) -> bool:
+    def _validate_stage_answer(
+        self, stage: ChallengeStage, answer: Any
+    ) -> bool:
         """Validate if the submitted answer is correct for a stage."""
         if "expected_output" in stage.solution:
             return answer == stage.solution["expected_output"]
         
         # In a real implementation, this would be more complex
         # and might involve running simulations
-        return True  # Simplified for this example
+        try:
+            # Check if simulation exists
+            simulation_result = self.engine.run_simulation(
+                stage.simulation_id,
+                {"user_answer": answer, **(stage.parameters or {})}
+            )
+            # Actual implementation would validate the answer against simulation
+            return "success" in simulation_result and simulation_result["success"]
+        except Exception as e:
+            logger.error(f"Error validating stage answer: {e}")
+            return False  # Return false if simulation fails
     
-    def _validate_simulation_answer(self, challenge: Challenge, answer: Any) -> bool:
+    def _validate_simulation_answer(
+        self, challenge: Challenge, answer: Any
+    ) -> bool:
         """Validate an answer by running a simulation."""
-        # This is a placeholder - in a real implementation,
-        # we would run the simulation with the answer and check the result
-        return True  # Simplified for this example
+        if not challenge.simulation_ids:
+            logger.warning(f"Challenge {challenge.id} has no simulation_ids")
+            return False
+            
+        try:
+            # Check that the simulation exists
+            simulation_id = challenge.simulation_ids[0]
+            simulation_result = self.engine.run_simulation(
+                simulation_id,
+                {"user_answer": answer, **(challenge.parameters or {})}
+            )
+            # Actual implementation would check simulation result
+            return "success" in simulation_result and simulation_result["success"]
+        except Exception as e:
+            logger.error(f"Error validating simulation answer: {e}")
+            return False
     
-    def _calculate_score(self, challenge: Challenge, attempt: ChallengeAttempt, success: bool) -> int:
-        """Calculate score based on challenge completion, time taken, and hints used."""
+    def _calculate_score(
+        self, challenge: Challenge, attempt: ChallengeAttempt, success: bool
+    ) -> int:
+        """Calculate score based on completion, time taken, and hints used."""
         if not success:
             return 0
         
@@ -347,8 +396,10 @@ class ChallengeService:
         
         # Deduct points for time taken (only for timed challenges)
         time_penalty = 0
-        if challenge.type == ChallengeType.TIMED and challenge.time_limit_seconds:
-            time_ratio = attempt.time_spent_seconds / challenge.time_limit_seconds
+        if (challenge.type == ChallengeType.TIMED and 
+                challenge.time_limit_seconds):
+            time_ratio = (attempt.time_spent_seconds / 
+                         challenge.time_limit_seconds)
             # Faster completion = higher score
             time_penalty = base_score * 0.5 * min(1, time_ratio)
         
@@ -406,7 +457,9 @@ class ChallengeService:
             simulation_id = challenge.simulation_ids[0]
             
             # For blind challenges, use the hidden simulation
-            if challenge.type == ChallengeType.BLIND and "actual_simulation" in challenge.hidden_parameters:
+            if (challenge.type == ChallengeType.BLIND and 
+                    challenge.hidden_parameters and
+                    "actual_simulation" in challenge.hidden_parameters):
                 simulation_id = challenge.hidden_parameters["actual_simulation"]
         
         # Execute the simulation

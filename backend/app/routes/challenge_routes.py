@@ -1,15 +1,13 @@
 """
 API routes for the challenge functionality.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from typing import Dict, List, Any, Optional
-import uuid
 
 from ..models.challenge import (
-    Challenge, 
-    ChallengeAttempt, 
-    ChallengeResult, 
-    ChallengeType,
+    Challenge,
+    ChallengeAttempt,
+    ChallengeResult,
     ChallengeStage
 )
 from ..services.challenge_service import ChallengeService
@@ -47,11 +45,19 @@ async def start_challenge(challenge_id: str, user_id: Optional[str] = None):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error: {type(e).__name__}"
+        )
 
 
-@router.post("/{challenge_id}/attempts/{attempt_id}/submit", response_model=ChallengeResult)
-async def submit_answer(challenge_id: str, attempt_id: str, answer: Dict[str, Any]):
+@router.post("/{challenge_id}/attempts/{attempt_id}/submit", 
+             response_model=ChallengeResult)
+async def submit_answer(
+    challenge_id: str, 
+    attempt_id: str, 
+    answer: Dict[str, Any]
+):
     """
     Submit an answer for a challenge attempt.
     """
@@ -60,21 +66,29 @@ async def submit_answer(challenge_id: str, attempt_id: str, answer: Dict[str, An
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error: {type(e).__name__}"
+        )
 
 
-@router.get("/{challenge_id}/attempts/{attempt_id}/hint", response_model=Dict[str, str])
+@router.get("/{challenge_id}/attempts/{attempt_id}/hint", 
+            response_model=Dict[str, str])
 async def get_hint(challenge_id: str, attempt_id: str):
     """
     Get a hint for the current challenge.
     """
     hint = challenge_service.get_hint(attempt_id)
     if hint is None:
-        raise HTTPException(status_code=404, detail="Hint not found or no more hints available")
+        raise HTTPException(
+            status_code=404, 
+            detail="Hint not found or no more hints available"
+        )
     return {"hint": hint}
 
 
-@router.get("/{challenge_id}/attempts/{attempt_id}/stage", response_model=Optional[ChallengeStage])
+@router.get("/{challenge_id}/attempts/{attempt_id}/stage", 
+            response_model=Optional[ChallengeStage])
 async def get_current_stage(challenge_id: str, attempt_id: str):
     """
     Get the current stage for a multi-stage challenge.
@@ -85,18 +99,26 @@ async def get_current_stage(challenge_id: str, attempt_id: str):
     return stage
 
 
-@router.post("/{challenge_id}/attempts/{attempt_id}/simulate", response_model=Dict[str, Any])
+@router.post("/{challenge_id}/attempts/{attempt_id}/simulate", 
+             response_model=Dict[str, Any])
 async def run_challenge_simulation(
-    challenge_id: str, 
-    attempt_id: str, 
+    challenge_id: str,
+    attempt_id: str,
     params: Optional[Dict[str, Any]] = None
 ):
     """
     Execute a simulation as part of a challenge.
     """
     try:
-        return challenge_service.execute_challenge_simulation(challenge_id, attempt_id, params)
+        return challenge_service.execute_challenge_simulation(
+            challenge_id, 
+            attempt_id, 
+            params
+        )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error: {type(e).__name__}"
+        )
