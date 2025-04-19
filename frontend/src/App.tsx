@@ -13,6 +13,7 @@ import SimulationDetailPage from './pages/SimulationDetailPage';
 import HastadAttackPage from './pages/HastadAttackPage';
 import AboutPage from './pages/AboutPage';
 import CBCPaddingOraclePage from './pages/CBCPaddingOraclePage';
+import MITMAttackPage from './pages/MITMAttackPage';
 
 const App: React.FC = () => {
   return (
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="/simulations/:id" element={<SimulationDetailPage />} />
             <Route path="/simulations/hastad-attack" element={<HastadAttackPage />} />
             <Route path="/simulations/cbc-padding-oracle" element={<CBCPaddingOraclePage />} />
+            <Route path="/simulations/mitm-attack" element={<MITMAttackPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>
         </main>

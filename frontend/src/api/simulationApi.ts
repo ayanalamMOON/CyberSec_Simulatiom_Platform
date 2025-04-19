@@ -93,6 +93,47 @@ export interface CBCPaddingOracleRequest {
   specific_blocks?: number[];
 }
 
+// MITM Attack interfaces
+export interface MITMParticipant {
+  id: string;
+  name: string;
+  key?: string;
+  certificate?: string;
+}
+
+export interface MITMMessage {
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  encrypted: boolean;
+  intercepted: boolean;
+  modified: boolean;
+  original_content?: string;
+}
+
+export interface MITMAttackResponse {
+  participants: MITMParticipant[];
+  messages: MITMMessage[];
+  simulation_steps: Array<{
+    step: string;
+    description: string;
+  }>;
+  success: boolean;
+  attack_type: string;
+  protocol: string;
+  vulnerable: boolean;
+  mitigation: string;
+}
+
+export interface MITMAttackRequest {
+  protocol: string;
+  intercept_mode: string;
+  encryption_strength: number;
+  message_count: number;
+  custom_messages?: string[];
+  enable_certificates: boolean;
+}
+
 // API functions
 export const simulationApi = {
   // Get list of available simulations
@@ -176,6 +217,30 @@ export const simulationApi = {
       return response.data;
     } catch (error) {
       console.error('Error running CBC Padding Oracle simulation:', error);
+      throw error;
+    }
+  },
+
+  // Run MITM Attack simulation
+  runMITMAttack: async (params: MITMAttackRequest): Promise<MITMAttackResponse> => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/simulations/mitm-attack/run`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error running MITM Attack simulation:', error);
+      throw error;
+    }
+  },
+
+  // Run MITM Attack simulation asynchronously
+  runMITMAttackAsync: async (params: MITMAttackRequest): Promise<TaskResponse> => {
+    try {
+      return await simulationApi.runSimulationAsync('mitm-attack', params);
+    } catch (error) {
+      console.error('Error running MITM Attack simulation asynchronously:', error);
       throw error;
     }
   }

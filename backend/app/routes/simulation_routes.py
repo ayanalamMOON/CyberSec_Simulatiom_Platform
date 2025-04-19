@@ -4,7 +4,14 @@ Routes for simulation endpoints in the CyberSecurity Simulation Platform.
 from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import List, Dict, Any
 
-from ..models.simulation import SimulationInfo, HastadAttackRequest, HastadAttackResponse, CBCPaddingOracleResponse
+from ..models.simulation import (
+    SimulationInfo, 
+    HastadAttackRequest, 
+    HastadAttackResponse, 
+    CBCPaddingOracleResponse,
+    MITMAttackRequest,
+    MITMAttackResponse
+)
 from ..services.simulation_service import SimulationService
 
 router = APIRouter(
@@ -97,5 +104,19 @@ async def run_cbc_padding_oracle(
     """
     try:
         return service.run_cbc_padding_oracle(params)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")
+
+
+@router.post("/mitm-attack/run", response_model=MITMAttackResponse)
+async def run_mitm_attack(
+    request: MITMAttackRequest,
+    service: SimulationService = Depends(get_simulation_service)
+):
+    """
+    Run a Man-in-the-Middle Attack simulation with the provided parameters.
+    """
+    try:
+        return service.run_mitm_attack(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")

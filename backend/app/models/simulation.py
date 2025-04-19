@@ -66,6 +66,47 @@ class CBCPaddingOracleResponse(BaseModel):
     success: bool
 
 
+class MITMParticipant(BaseModel):
+    """Model for a participant in MITM attack simulation."""
+    id: str
+    name: str
+    key: Optional[str] = None
+    certificate: Optional[str] = None
+
+
+class MITMMessage(BaseModel):
+    """Model for a message in MITM attack simulation."""
+    sender_id: str
+    receiver_id: str
+    content: str
+    encrypted: bool
+    intercepted: bool = False
+    modified: bool = False
+    original_content: Optional[str] = None
+
+
+class MITMAttackRequest(BaseModel):
+    """Request model for MITM attack simulation."""
+    protocol: str = Field(default="TLS", description="The protocol to simulate (TLS, SSH, etc)")
+    intercept_mode: str = Field(default="passive", description="Whether to just observe or modify traffic")
+    encryption_strength: int = Field(default=128, ge=64, le=256, description="Encryption strength in bits")
+    message_count: int = Field(default=5, ge=1, le=20, description="Number of messages to simulate")
+    custom_messages: Optional[List[str]] = Field(default=None, description="Optional custom messages to use")
+    enable_certificates: bool = Field(default=True, description="Whether to use certificates in the simulation")
+
+
+class MITMAttackResponse(BaseModel):
+    """Response model for MITM attack simulation."""
+    participants: List[MITMParticipant]
+    messages: List[MITMMessage]
+    simulation_steps: List[SimulationStep]
+    success: bool
+    attack_type: str
+    protocol: str
+    vulnerable: bool
+    mitigation: str
+
+
 class SimulationStatus(str, Enum):
     """Status of a simulation execution."""
     PENDING = "pending"

@@ -8,7 +8,9 @@ from ..models.simulation import (
     SimulationInfo, 
     HastadAttackRequest, 
     HastadAttackResponse,
-    SimulationStep
+    SimulationStep,
+    MITMAttackRequest,
+    MITMAttackResponse
 )
 from ..engine.execution_engine import SimulationEngine
 
@@ -36,12 +38,12 @@ class SimulationService:
                 "complexity": "Hard",
                 "tags": ["AES", "Block Cipher", "Oracle Attack", "Padding"]
             },
-            "mitm-visualization": {
-                "id": "mitm-visualization",
+            "mitm-attack": {
+                "id": "mitm-attack",
                 "name": "Man-in-the-Middle Attack",
                 "description": "Visualize how MITM attacks work and how they can compromise otherwise secure communications.",
-                "complexity": "Easy",
-                "tags": ["Network", "TLS", "Protocol"]
+                "complexity": "Medium",
+                "tags": ["Network", "TLS", "Protocol", "Security"]
             },
             "wifi-cracking": {
                 "id": "wifi-cracking",
@@ -154,4 +156,29 @@ class SimulationService:
             return result
         except Exception as e:
             logger.error(f"Error running CBC Padding Oracle simulation: {str(e)}")
+            raise
+
+    def run_mitm_attack(self, request: MITMAttackRequest) -> MITMAttackResponse:
+        """
+        Run the Man-in-the-Middle attack simulation using the simulation engine.
+        
+        Args:
+            request: The parameters for the simulation
+            
+        Returns:
+            The simulation results
+        """
+        try:
+            # Convert request to dictionary of parameters
+            params = request.dict()
+            
+            # Run the simulation through the engine
+            result = self.engine.run_simulation(
+                simulation_id="mitm-attack",
+                params=params
+            )
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error running MITM attack simulation: {str(e)}")
             raise
