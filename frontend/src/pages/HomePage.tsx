@@ -68,8 +68,8 @@ const HomePage: React.FC = () => {
       color: 'from-purple-500 to-pink-600'
     },
     {
-      id: 'mitm-visualization',
-      title: 'Man-in-the-Middle Visualization',
+      id: 'mitm-attack',
+      title: 'Man-in-the-Middle Attack',
       description: 'See how MITM attacks work and how protocols can be compromised.',
       icon: <FaUserSecret size={28} />,
       tags: ['Network', 'Protocol', 'TLS'],

@@ -62,6 +62,12 @@ class SimulationEngine:
             runner_class=None,
             description="CBC Padding Oracle Attack simulation"
         )
+        self.register_simulation(
+            simulation_id="mitm-attack",
+            module_path="simulations.mitm_attack",
+            runner_class=None, 
+            description="Man-in-the-Middle Attack simulation"
+        )
         # More simulations can be registered here as they are developed
     
     def register_simulation(self, 

@@ -40,7 +40,7 @@ const SimulationLibraryPage: React.FC = () => {
           icon: '🔒'
         },
         {
-          id: 'mitm-visualization',
+          id: 'mitm-attack',
           name: 'Man-in-the-Middle Attack',
           description: 'Visualize how MITM attacks work and how they can compromise otherwise secure communications.',
           complexity: 'Easy',
