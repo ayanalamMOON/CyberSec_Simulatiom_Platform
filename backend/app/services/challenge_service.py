@@ -437,16 +437,13 @@ class ChallengeService:
         simulation_params = {}
         if params:
             simulation_params.update(params)
-        if challenge.parameters:
-            simulation_params.update(challenge.parameters)
         
-        # For multi-stage challenges, use the current stage's simulation
+        # Determine simulation ID early to use in parameter transformations
+        simulation_id = None
         if challenge.type == ChallengeType.MULTI_STAGE:
             if attempt.current_stage_index < len(challenge.stages):
                 stage = challenge.stages[attempt.current_stage_index]
                 simulation_id = stage.simulation_id
-                if stage.parameters:
-                    simulation_params.update(stage.parameters)
             else:
                 raise ValueError("Challenge has no more stages")
         else:
@@ -462,12 +459,56 @@ class ChallengeService:
                     "actual_simulation" in challenge.hidden_parameters):
                 simulation_id = challenge.hidden_parameters["actual_simulation"]
         
+        # Transform parameters based on simulation type
+        if challenge.parameters:
+            if simulation_id == "hastad-attack":
+                # Transform public_key to exponent for Hastad attack
+                if "public_key" in challenge.parameters:
+                    if "e" in challenge.parameters["public_key"]:
+                        simulation_params["exponent"] = challenge.parameters["public_key"]["e"]
+                    if "n" in challenge.parameters["public_key"]:
+                        simulation_params["modulus"] = challenge.parameters["public_key"]["n"]
+                if "ciphertext" in challenge.parameters:
+                    simulation_params["message"] = int(challenge.parameters["ciphertext"])
+            elif simulation_id == "mitm-attack":
+                # Transform mode to intercept_mode for MITM attack
+                if "mode" in challenge.parameters:
+                    simulation_params["intercept_mode"] = challenge.parameters["mode"]
+                    # Remove the original mode parameter to avoid duplicates
+                    if "mode" in simulation_params:
+                        del simulation_params["mode"]
+                # Update other parameters as needed
+                simulation_params.update({k: v for k, v in challenge.parameters.items() if k != "mode"})
+            else:
+                # For other simulation types, just update params
+                simulation_params.update(challenge.parameters)
+        
+        # Add stage-specific parameters for multi-stage challenges
+        if challenge.type == ChallengeType.MULTI_STAGE:
+            stage = challenge.stages[attempt.current_stage_index]
+            if stage.parameters:
+                # Apply the same transformations for stage parameters
+                if simulation_id == "mitm-attack" and "mode" in stage.parameters:
+                    simulation_params["intercept_mode"] = stage.parameters["mode"]
+                    stage_params = {k: v for k, v in stage.parameters.items() if k != "mode"}
+                    simulation_params.update(stage_params)
+                else:
+                    simulation_params.update(stage.parameters)
+        
         # Execute the simulation
         result = self.engine.run_simulation(simulation_id, simulation_params)
         
         # For blind challenges, obscure certain parts of the result
         if challenge.type == ChallengeType.BLIND:
             result = self._obscure_blind_result(result)
+        
+        # Check if result is a Pydantic model and convert it to a dictionary if needed
+        if hasattr(result, "model_dump"):
+            # For Pydantic v2.x
+            return result.model_dump()
+        elif hasattr(result, "dict"):
+            # For Pydantic v1.x
+            return result.dict()
         
         return result
     

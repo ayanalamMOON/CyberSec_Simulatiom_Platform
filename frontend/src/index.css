@@ -7,6 +7,10 @@ body {
   @apply bg-gray-50 text-gray-900;
 }
 
+.dark body {
+  @apply bg-gray-900 text-white;
+}
+
 .code-editor {
   @apply font-mono bg-terminal-bg text-terminal-text rounded shadow-lg;
 }
@@ -48,4 +52,46 @@ body {
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+
+/* Video background styles */
+.video-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 20, 40, 0.7);
+  z-index: 1;
+}
+
+.light-mode .video-overlay {
+  background: rgba(0, 20, 40, 0.8);
+}
+
+.dark-mode .video-overlay {
+  background: rgba(0, 10, 30, 0.7);
+}
+
+/* Text visibility enhancements */
+.enhanced-text-visibility {
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
+}
+
+.light-mode .enhanced-text-visibility {
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.7);
+}
+
+.dark-mode .enhanced-text-visibility {
+  text-shadow: 0px 0px 15px rgba(0, 0, 0, 0.9);
 }

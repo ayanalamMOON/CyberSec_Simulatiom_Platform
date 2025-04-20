@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -15,10 +15,16 @@ import {
   FaTrophy,
   FaClock,
   FaEye,
-  FaTasks
+  FaTasks,
+  FaVolumeMute,
+  FaVolumeUp
 } from 'react-icons/fa';
+import { ThemeContext } from '../context/ThemeContext';
 
 const HomePage: React.FC = () => {
+  const { theme } = useContext(ThemeContext);
+  const [muted, setMuted] = React.useState(true);
+  
   // Using intersection observer hooks for scroll-triggered animations
   const [featuresRef, featuresInView] = useInView({ 
     threshold: 0.2,
@@ -114,44 +120,38 @@ const HomePage: React.FC = () => {
     }
   ];
 
+  const toggleMute = () => {
+    setMuted(!muted);
+  };
+
   return (
     <div className="flex flex-col space-y-24 pb-8">
-      {/* Hero Section with animated background and floating elements */}
+      {/* Hero Section with matrix video background */}
       <section className="relative py-20 px-4 mt-8">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-900 
-          dark:from-primary-900 dark:via-primary-800 dark:to-secondary-800 rounded-3xl overflow-hidden shadow-xl">
-          
-          {/* Animated background shapes */}
-          <motion.div 
-            className="absolute top-0 left-0 w-full h-full opacity-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.1 }}
-            transition={{ duration: 1 }}
+        {/* Matrix video background */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-xl">
+          <video 
+            className="video-background"
+            autoPlay 
+            loop 
+            muted={muted} 
+            playsInline
           >
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full bg-white"
-                style={{
-                  width: Math.random() * 300 + 100,
-                  height: Math.random() * 300 + 100,
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  x: [0, Math.random() * 100 - 50],
-                  y: [0, Math.random() * 100 - 50],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  duration: 20 + Math.random() * 10,
-                  ease: "easeInOut",
-                }}
-              />
-            ))}
-          </motion.div>
+            <source src="/videos/47802-451812879_medium.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
+          {/* Video overlay to ensure text visibility */}
+          <div className={`video-overlay ${theme === 'dark' ? 'dark-mode' : 'light-mode'}`}></div>
+          
+          {/* Sound toggle button */}
+          <button 
+            onClick={toggleMute} 
+            className="absolute top-4 right-4 z-20 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+            aria-label={muted ? "Unmute video" : "Mute video"}
+          >
+            {muted ? <FaVolumeMute size={20} /> : <FaVolumeUp size={20} />}
+          </button>
         </div>
 
         {/* Content */}
@@ -166,7 +166,7 @@ const HomePage: React.FC = () => {
           </motion.div>
           
           <motion.h1 
-            className="text-4xl md:text-6xl font-bold mb-6 leading-tight"
+            className="text-4xl md:text-6xl font-bold mb-6 leading-tight enhanced-text-visibility"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -176,7 +176,7 @@ const HomePage: React.FC = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-100"
+            className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-100 enhanced-text-visibility"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -194,7 +194,7 @@ const HomePage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-white text-primary-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg transition-colors flex items-center"
+                className="bg-white text-primary-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg transition-colors flex items-center shadow-lg"
               >
                 <FaSearch className="mr-2" />
                 Explore Simulations
@@ -204,7 +204,7 @@ const HomePage: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-transparent border-2 border-white hover:bg-white hover:text-primary-700 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center"
+                className="bg-transparent border-2 border-white hover:bg-white hover:text-primary-700 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center shadow-lg"
               >
                 <FaRocket className="mr-2" />
                 Try Demo
