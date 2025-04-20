@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
@@ -19,10 +19,10 @@ import {
   FaVolumeMute,
   FaVolumeUp
 } from 'react-icons/fa';
-import { ThemeContext } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 
 const HomePage: React.FC = () => {
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useTheme();
   const [muted, setMuted] = React.useState(true);
   
   // Using intersection observer hooks for scroll-triggered animations
