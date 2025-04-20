@@ -9,7 +9,12 @@ import challengeApi, {
   ChallengeType, 
   ChallengeStage 
 } from '../api/challengeApi';
-import simulationApi from '../api/simulationApi';
+import simulationApi, {
+  SimulationStatus,
+  HastadAttackResponse,
+  CBCPaddingOracleResponse,
+  MITMAttackResponse
+} from '../api/simulationApi';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Button from '../components/Button';
 
@@ -19,6 +24,11 @@ const ChallengeDetailPage: React.FC = () => {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [attempt, setAttempt] = useState<ChallengeAttempt | null>(null);
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
+  const [simulationDetails, setSimulationDetails] = useState<
+    HastadAttackResponse | CBCPaddingOracleResponse | MITMAttackResponse | null
+  >(null);
+  const [simulationTaskId, setSimulationTaskId] = useState<string | null>(null);
+  const [simulationStatus, setSimulationStatus] = useState<SimulationStatus | null>(null);
   const [answer, setAnswer] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [result, setResult] = useState<ChallengeResult | null>(null);
@@ -47,7 +57,6 @@ const ChallengeDetailPage: React.FC = () => {
     fetchChallenge();
   }, [id]);
   
-  // Start a challenge attempt when the challenge data is loaded
   useEffect(() => {
     const startChallenge = async () => {
       if (!challenge) return;
@@ -56,12 +65,10 @@ const ChallengeDetailPage: React.FC = () => {
         const attemptData = await challengeApi.startChallenge(challenge.id);
         setAttempt(attemptData);
         
-        // For multi-stage challenges, fetch the first stage
         if (challenge.type === ChallengeType.MULTI_STAGE && challenge.stages?.length) {
           setCurrentStage(challenge.stages[0]);
         }
         
-        // For timed challenges, initialize the timer
         if (challenge.time_limit_seconds) {
           setTimeLeft(challenge.time_limit_seconds);
         }
@@ -73,7 +80,6 @@ const ChallengeDetailPage: React.FC = () => {
     startChallenge();
   }, [challenge]);
   
-  // Timer for timed challenges
   useEffect(() => {
     if (!timeLeft || timeLeft <= 0) return;
     
@@ -84,7 +90,6 @@ const ChallengeDetailPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
   
-  // Run a simulation for the challenge when the attempt is created
   useEffect(() => {
     const runChallengeSimulation = async () => {
       if (!challenge || !attempt) return;
@@ -93,13 +98,11 @@ const ChallengeDetailPage: React.FC = () => {
         let result;
         
         if (challenge.type === ChallengeType.MULTI_STAGE && currentStage) {
-          // For multi-stage challenges, run the simulation for the current stage
           result = await challengeApi.runChallengeSimulation(
             challenge.id, 
             attempt.id
           );
         } else {
-          // For other challenge types
           result = await challengeApi.runChallengeSimulation(
             challenge.id, 
             attempt.id
@@ -107,6 +110,45 @@ const ChallengeDetailPage: React.FC = () => {
         }
         
         setSimulationResult(result);
+
+        if (challenge.simulation_ids && challenge.simulation_ids.length > 0) {
+          const simId = challenge.simulation_ids[0];
+          
+          if (challenge.type === ChallengeType.BLIND) {
+            return;
+          }
+          
+          try {
+            if (simId === 'hastad-attack') {
+              const taskResponse = await simulationApi.runHastadAttackAsync({
+                exponent: result.parameters?.exponent || 3,
+                key_size: result.parameters?.key_size || 1024
+              });
+              
+              setSimulationTaskId(taskResponse.task_id);
+              setSimulationStatus(SimulationStatus.RUNNING);
+            } else if (simId === 'cbc-padding-oracle') {
+              const simResult = await simulationApi.runCBCPaddingOracle({
+                auto_decrypt: false,
+                key_size: result.parameters?.key_size || 128
+              });
+              setSimulationDetails(simResult);
+            } else if (simId === 'mitm-attack') {
+              const taskResponse = await simulationApi.runMITMAttackAsync({
+                protocol: result.parameters?.protocol || 'basic',
+                intercept_mode: 'passive',
+                encryption_strength: result.parameters?.encryption_strength || 1,
+                message_count: 5,
+                enable_certificates: !!result.parameters?.enable_certificates
+              });
+              
+              setSimulationTaskId(taskResponse.task_id);
+              setSimulationStatus(SimulationStatus.RUNNING);
+            }
+          } catch (simError) {
+            console.error('Error fetching detailed simulation:', simError);
+          }
+        }
       } catch (error) {
         setError(`Error running simulation: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
@@ -114,6 +156,35 @@ const ChallengeDetailPage: React.FC = () => {
     
     runChallengeSimulation();
   }, [challenge, attempt, currentStage]);
+  
+  useEffect(() => {
+    if (!simulationTaskId || simulationStatus !== SimulationStatus.RUNNING) {
+      return;
+    }
+    
+    const checkTaskStatus = async () => {
+      try {
+        const status = await simulationApi.getTaskStatus(simulationTaskId);
+        setSimulationStatus(status.status);
+        
+        if (status.status === SimulationStatus.COMPLETED && status.has_result) {
+          const simId = challenge?.simulation_ids?.[0];
+          if (simId === 'hastad-attack') {
+            const result = await simulationApi.getTaskStatus(simulationTaskId);
+            setSimulationDetails(result as any);
+          } else if (simId === 'mitm-attack') {
+            const result = await simulationApi.getTaskStatus(simulationTaskId);
+            setSimulationDetails(result as any);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking task status:', error);
+      }
+    };
+    
+    const interval = setInterval(checkTaskStatus, 2000);
+    return () => clearInterval(interval);
+  }, [simulationTaskId, simulationStatus, challenge]);
   
   const handleSubmitAnswer = async () => {
     if (!challenge || !attempt || !answer.trim()) return;
@@ -128,19 +199,17 @@ const ChallengeDetailPage: React.FC = () => {
       
       setResult(result);
       
-      // For multi-stage challenges, update the current stage if successful
       if (result.success && challenge.type === ChallengeType.MULTI_STAGE && challenge.stages) {
         if (result.correct_stages < challenge.stages.length) {
           setCurrentStage(challenge.stages[result.correct_stages]);
           
-          // Run the simulation for the next stage
           const nextSimResult = await challengeApi.runChallengeSimulation(
             challenge.id,
             attempt.id
           );
           setSimulationResult(nextSimResult);
-          setAnswer(''); // Clear the answer field
-          setResult(null); // Clear previous result
+          setAnswer('');
+          setResult(null);
         }
       }
     } catch (error) {
@@ -168,6 +237,136 @@ const ChallengeDetailPage: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
   
+  const renderSimulationVisualization = () => {
+    if (!simulationResult) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-600"></div>
+        </div>
+      );
+    }
+
+    if (simulationDetails) {
+      if ('recipients' in simulationDetails) {
+        return (
+          <div className="bg-gray-50 p-4 rounded-lg mb-4 overflow-auto h-72">
+            <h4 className="font-medium mb-2">RSA Attack Simulation</h4>
+            <div className="mb-2">
+              <span className="font-medium">Original Message:</span> {simulationDetails.original_message}
+            </div>
+            {simulationDetails.success && (
+              <div className="mb-2 text-green-600">
+                <span className="font-medium">Recovered Message:</span> {simulationDetails.recovered_message}
+              </div>
+            )}
+            <div className="mb-2">
+              <span className="font-medium">Recipients:</span> {simulationDetails.recipients.length}
+            </div>
+            <div className="mt-4">
+              <h5 className="font-medium mb-1">Simulation Steps:</h5>
+              <ul className="list-disc list-inside">
+                {simulationDetails.simulation_steps.map((step, index) => (
+                  <li key={index} className="mb-1">
+                    <span className="font-medium">{step.step}:</span> {step.description}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      } else if ('blocks' in simulationDetails) {
+        return (
+          <div className="bg-gray-50 p-4 rounded-lg mb-4 overflow-auto h-72">
+            <h4 className="font-medium mb-2">CBC Padding Oracle Attack</h4>
+            <div className="mb-2">
+              <span className="font-medium">IV:</span> {simulationDetails.iv}
+            </div>
+            <div className="mb-2">
+              <span className="font-medium">Encrypted Message:</span> {simulationDetails.encrypted_message}
+            </div>
+            <div className="mb-4">
+              <h5 className="font-medium mb-1">Blocks:</h5>
+              <div className="grid grid-cols-2 gap-2">
+                {simulationDetails.blocks.map((block) => (
+                  <div 
+                    key={block.index}
+                    className={`p-2 rounded ${block.decrypted ? 'bg-green-50' : 'bg-gray-100'}`}
+                  >
+                    <div><span className="font-medium">Block {block.index}:</span> {block.data}</div>
+                    {block.decrypted && (
+                      <div className="text-green-600">{block.decrypted_data}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-4">
+              <h5 className="font-medium mb-1">Simulation Steps:</h5>
+              <ul className="list-disc list-inside">
+                {simulationDetails.simulation_steps.map((step, index) => (
+                  <li key={index} className="mb-1">
+                    <span className="font-medium">{step.step}:</span> {step.description}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      } else if ('participants' in simulationDetails) {
+        return (
+          <div className="bg-gray-50 p-4 rounded-lg mb-4 overflow-auto h-72">
+            <h4 className="font-medium mb-2">MITM Attack Simulation</h4>
+            <div className="mb-2">
+              <span className="font-medium">Protocol:</span> {simulationDetails.protocol}
+            </div>
+            <div className="mb-2">
+              <span className="font-medium">Status:</span>{' '}
+              <span className={simulationDetails.success ? 'text-green-600' : 'text-red-600'}>
+                {simulationDetails.success ? 'Attack Successful' : 'Attack Failed'}
+              </span>
+            </div>
+            <div className="mb-4">
+              <h5 className="font-medium mb-1">Participants:</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                {simulationDetails.participants.map((participant) => (
+                  <div key={participant.id} className="p-2 bg-gray-100 rounded">
+                    <div><span className="font-medium">{participant.name}</span> ({participant.id})</div>
+                    {participant.key && <div className="text-xs truncate">Key: {participant.key}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <h5 className="font-medium mb-1">Messages:</h5>
+              <div className="space-y-2">
+                {simulationDetails.messages.map((msg, index) => (
+                  <div 
+                    key={index}
+                    className={`p-2 rounded ${msg.intercepted ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                  >
+                    <div className="text-xs">{msg.sender_id} → {msg.receiver_id}</div>
+                    <div className={`${msg.modified ? 'text-red-600' : ''}`}>
+                      {msg.content}
+                    </div>
+                    {msg.modified && (
+                      <div className="text-xs text-gray-500">Original: {msg.original_content}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
+    
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg mb-4 overflow-auto h-72">
+        <pre className="text-sm">{JSON.stringify(simulationResult, null, 2)}</pre>
+      </div>
+    );
+  };
+  
   if (loading) {
     return <LoadingAnimation />;
   }
@@ -188,7 +387,6 @@ const ChallengeDetailPage: React.FC = () => {
     );
   }
   
-  // Challenge completed view
   if (result?.success && (challenge.type !== ChallengeType.MULTI_STAGE || result.correct_stages === challenge.stages?.length)) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -306,20 +504,9 @@ const ChallengeDetailPage: React.FC = () => {
               </>
             )}
             
-            {/* Simulation result visualization area */}
-            {simulationResult ? (
-              <div className="bg-gray-50 p-4 rounded-lg mb-4 overflow-auto h-72">
-                <pre className="text-sm">{JSON.stringify(simulationResult, null, 2)}</pre>
-                {/* In a real implementation, this would be a proper visualization component */}
-              </div>
-            ) : (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-600"></div>
-              </div>
-            )}
+            {renderSimulationVisualization()}
           </div>
           
-          {/* Submission area */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-medium mb-4">Submit Your Answer</h3>
             
@@ -358,7 +545,6 @@ const ChallengeDetailPage: React.FC = () => {
           </div>
         </div>
         
-        {/* Challenge info sidebar */}
         <div>
           <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <h3 className="text-lg font-medium mb-4">Challenge Overview</h3>
